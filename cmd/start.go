@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 
 	"net/http"
@@ -24,6 +25,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/wpengine/lostromos/bundlectlr"
 	"github.com/wpengine/lostromos/crwatcher"
 	"github.com/wpengine/lostromos/helmctlr"
 	"github.com/wpengine/lostromos/printctlr"
@@ -55,6 +57,9 @@ func init() {
 	startCmd.Flags().String("crd-version", "v1", "the version of the CRD you want monitored")
 	startCmd.Flags().String("crd-namespace", metav1.NamespaceNone, "(optional) the namespace of the CRD you want monitored, only needed for namespaced CRDs (ex: default)")
 	startCmd.Flags().String("crd-filter", "", "(optional) Annotation key to specify that the custom resource has opted in to watching by Lostromos")
+	startCmd.Flags().String("bundle-spec", "", "base64 encoded spec")
+	startCmd.Flags().String("bundle-ns", "", "Namespace for resources deployed by the bundle")
+	startCmd.Flags().String("bundle-sandbox-role", "", "sandbox role to run the bundle as")
 	startCmd.Flags().String("helm-chart", "", "Path for helm chart")
 	startCmd.Flags().String("helm-ns", "default", "Namespace for resources deployed by helm")
 	startCmd.Flags().String("helm-prefix", "lostromos", "Prefix for release names in helm")
@@ -73,6 +78,9 @@ func init() {
 	viperBindFlag("crd.version", startCmd.Flags().Lookup("crd-version"))
 	viperBindFlag("crd.namespace", startCmd.Flags().Lookup("crd-namespace"))
 	viperBindFlag("crd.filter", startCmd.Flags().Lookup("crd-filter"))
+	viperBindFlag("bundle.spec", startCmd.Flags().Lookup("bundle-spec"))
+	viperBindFlag("bundle.ns", startCmd.Flags().Lookup("bundle-ns"))
+	viperBindFlag("bundle.sandbox-role", startCmd.Flags().Lookup("bundle-sandbox-role"))
 	viperBindFlag("helm.chart", startCmd.Flags().Lookup("helm-chart"))
 	viperBindFlag("helm.namespace", startCmd.Flags().Lookup("helm-ns"))
 	viperBindFlag("helm.releasePrefix", startCmd.Flags().Lookup("helm-prefix"))
@@ -130,7 +138,6 @@ func getController() crwatcher.ResourceController {
 		return &printctlr.Controller{}
 	}
 	if viper.GetString("helm.chart") != "" {
-
 		chrt := viper.GetString("helm.chart")
 		hns := viper.GetString("helm.namespace")
 		hrn := viper.GetString("helm.releasePrefix")
@@ -147,6 +154,23 @@ func getController() crwatcher.ResourceController {
 			"helmWaitTimeout", hwto,
 		)
 		return helmctlr.NewController(chrt, hns, hrn, ht, hw, hwto, logger)
+	}
+	if viper.GetString("bundle.spec") != "" {
+		ns := viper.GetString("bundle.ns")
+		bs := viper.GetString("bundle.spec")
+		bsr := viper.GetString("bundle.sandbox-role")
+		g := viper.GetString("crd.group")
+		v := viper.GetString("crd.version")
+		pn := viper.GetString("crd.name")
+		cfg, err := getKubeClient()
+		if err != nil {
+			panic(err.Error())
+		}
+		if ns == "" || bs == "" || bsr == "" {
+			panic(fmt.Sprintf("ns: %v, bs: %v, bsr: %v one is not defined", ns, bs, bsr))
+		}
+		logger.Infow("using bundle controller for deployment", "ns", ns, "sandbox-role", bsr)
+		return bundlectlr.NewController(ns, bsr, bs, g, v, pn, logger, cfg)
 	}
 	logger = logger.With("controller", "template")
 	logger.Infow("using template controller for deployment", "templateDir", viper.GetString("templates"))

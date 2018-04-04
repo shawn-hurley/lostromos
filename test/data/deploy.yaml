@@ -7,9 +7,9 @@ metadata:
 spec:
   containers:
   - name: lostromos
-    image: lostromos:test
+    image: docker.io/shurley/lostromos:test
     ports:
       - containerPort: 8080
-    imagePullPolicy: IfNotPresent
-    args: ["start", "--debug", "--nop", "--config", "/test/data/config.yaml"]
+    imagePullPolicy: Always
+    args: ["start", "--debug", "--config", "/test/data/config.yaml"]
   restartPolicy: OnFailure
