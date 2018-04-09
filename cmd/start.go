@@ -59,6 +59,7 @@ func init() {
 	startCmd.Flags().String("crd-filter", "", "(optional) Annotation key to specify that the custom resource has opted in to watching by Lostromos")
 	startCmd.Flags().String("bundle-spec", "", "base64 encoded spec")
 	startCmd.Flags().String("bundle-ns", "", "Namespace for resources deployed by the bundle")
+	startCmd.Flags().String("bundle-plan", "", "bundle plan that this should deploy")
 	startCmd.Flags().String("bundle-sandbox-role", "", "sandbox role to run the bundle as")
 	startCmd.Flags().String("helm-chart", "", "Path for helm chart")
 	startCmd.Flags().String("helm-ns", "default", "Namespace for resources deployed by helm")
@@ -81,6 +82,7 @@ func init() {
 	viperBindFlag("bundle.spec", startCmd.Flags().Lookup("bundle-spec"))
 	viperBindFlag("bundle.ns", startCmd.Flags().Lookup("bundle-ns"))
 	viperBindFlag("bundle.sandbox-role", startCmd.Flags().Lookup("bundle-sandbox-role"))
+	viperBindFlag("bundle.plan", startCmd.Flags().Lookup("bundle-plan"))
 	viperBindFlag("helm.chart", startCmd.Flags().Lookup("helm-chart"))
 	viperBindFlag("helm.namespace", startCmd.Flags().Lookup("helm-ns"))
 	viperBindFlag("helm.releasePrefix", startCmd.Flags().Lookup("helm-prefix"))
@@ -158,6 +160,7 @@ func getController() crwatcher.ResourceController {
 	if viper.GetString("bundle.spec") != "" {
 		ns := viper.GetString("bundle.ns")
 		bs := viper.GetString("bundle.spec")
+		plan := viper.GetString("bundle.plan")
 		bsr := viper.GetString("bundle.sandbox-role")
 		g := viper.GetString("crd.group")
 		v := viper.GetString("crd.version")
@@ -166,11 +169,15 @@ func getController() crwatcher.ResourceController {
 		if err != nil {
 			panic(err.Error())
 		}
+		if ns == "" {
+			viper.BindEnv("MY_POD_NAMESPACE")
+			ns = viper.GetString("MY_POD_NAMESPACE")
+		}
 		if ns == "" || bs == "" || bsr == "" {
 			panic(fmt.Sprintf("ns: %v, bs: %v, bsr: %v one is not defined", ns, bs, bsr))
 		}
 		logger.Infow("using bundle controller for deployment", "ns", ns, "sandbox-role", bsr)
-		return bundlectlr.NewController(ns, bsr, bs, g, v, pn, logger, cfg)
+		return bundlectlr.NewController(ns, bsr, bs, g, v, pn, plan, logger, cfg)
 	}
 	logger = logger.With("controller", "template")
 	logger.Infow("using template controller for deployment", "templateDir", viper.GetString("templates"))

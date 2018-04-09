@@ -44,6 +44,7 @@ const (
 	defaultNS         = "default"
 	serviceInstanceID = "serviceInstanceID"
 	parameterHashKey  = "parameterHash"
+	apbPlanKey        = "_apb_plan_id"
 )
 
 // Controller - controller for Bundles
@@ -51,12 +52,13 @@ type Controller struct {
 	Spec        *apb.Spec // image name for the bundle
 	Namespace   string    // Namespace that the controller should deploy the bundle to.
 	SandboxRole string    // Sandbox role to be used. Will default to edit
+	planName    string
 	logger      *zap.SugaredLogger
 	dc          dynamic.ResourceInterface
 }
 
 // NewController - create the new controller
-func NewController(ns, sr, spec64Yaml, group, version, pn string, logger *zap.SugaredLogger, kubeCfg *restclient.Config) *Controller {
+func NewController(ns, sr, spec64Yaml, group, version, pn, plan string, logger *zap.SugaredLogger, kubeCfg *restclient.Config) *Controller {
 	if ns == "" {
 		ns = defaultNS
 	}
@@ -97,6 +99,7 @@ func NewController(ns, sr, spec64Yaml, group, version, pn string, logger *zap.Su
 		Namespace:   ns,
 		SandboxRole: sr,
 		Spec:        spec,
+		planName:    plan,
 		logger:      logger,
 		dc:          dynClient.Resource(apiResource, ns),
 	}
@@ -136,6 +139,7 @@ func (c Controller) ResourceAdded(r *unstructured.Unstructured) {
 	// status
 	s.Status[serviceInstanceID] = id
 	c.updateStatus(s)
+	s.Spec[parameterHashKey] = c.planName
 	si := apb.ServiceInstance{
 		ID:   id,
 		Spec: c.Spec,
@@ -207,6 +211,7 @@ func (c Controller) ResourceUpdated(oldR, newR *unstructured.Unstructured) {
 	newGBR.Status[parameterHashKey] = newParams
 	c.updateStatus(newGBR)
 	id := uuid.Parse((newGBR.Status[serviceInstanceID]).(string))
+	newGBR.Spec[parameterHashKey] = c.planName
 	si := apb.ServiceInstance{
 		ID:   id,
 		Spec: c.Spec,

@@ -12,7 +12,7 @@ WORKDIR /go/src/github.com/wpengine/lostromos
 COPY .  /go/src/github.com/wpengine/lostromos
 
 # Install any compile-time golang dependencies.
-RUN dep ensure
+RUN dep ensure -v
 RUN make out/lostromos-linux-amd64
 
 FROM alpine:latest
