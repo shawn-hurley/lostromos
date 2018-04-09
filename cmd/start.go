@@ -125,7 +125,7 @@ func buildCRWatcher(cfg *restclient.Config) (*crwatcher.CRWatcher, error) {
 		PluralName: viper.GetString("crd.name"),
 		Group:      viper.GetString("crd.group"),
 		Version:    viper.GetString("crd.version"),
-		Namespace:  viper.GetString("crd.namespace"),
+		Namespace:  viper.GetString("bundle.ns"),
 		Filter:     viper.GetString("crd.filter"),
 	}
 	ctlr := getController()
