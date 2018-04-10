@@ -49,7 +49,7 @@
     "origin/copy/user/validation",
     "runtime"
   ]
-  revision = "1644152ceee0e53e7e5c011e036463c29bbb0cb4"
+  revision = "04ab75e955ac7807854ede0921417778b9cbf61a"
   source = "https://github.com/shawn-hurley/bundle-lib.git"
 
 [[projects]]
@@ -760,6 +760,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fa16032ef83c829dfda071cbfa37729f351ceba57f06018c12936c929604d2e4"
+  inputs-digest = "30f059d22d2139c66c4a5d532ea8ec42ad5c01a577afb656b6f4693644ce9a25"
   solver-name = "gps-cdcl"
   solver-version = 1
