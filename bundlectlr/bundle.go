@@ -144,8 +144,9 @@ func (c Controller) ResourceAdded(r *unstructured.Unstructured) {
 		ID:   id,
 		Spec: c.Spec,
 		Context: &apb.Context{
-			Platform:  "kubernetes",
-			Namespace: c.Namespace,
+			Platform:     "kubernetes",
+			Namespace:    c.Namespace,
+			NotSandboxed: true,
 		},
 		Parameters: &s.Spec,
 	}
@@ -216,8 +217,9 @@ func (c Controller) ResourceUpdated(oldR, newR *unstructured.Unstructured) {
 		ID:   id,
 		Spec: c.Spec,
 		Context: &apb.Context{
-			Platform:  "kubernetes",
-			Namespace: c.Namespace,
+			Platform:     "kubernetes",
+			Namespace:    c.Namespace,
+			NotSandboxed: true,
 		},
 		Parameters: &newGBR.Spec,
 	}
