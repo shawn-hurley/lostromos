@@ -128,6 +128,7 @@ func buildCRWatcher(cfg *restclient.Config) (*crwatcher.CRWatcher, error) {
 		Namespace:  viper.GetString("bundle.ns"),
 		Filter:     viper.GetString("crd.filter"),
 	}
+	logger.Infow("crd watcher config", "config", cwCfg)
 	ctlr := getController()
 	l := &crLogger{logger: logger}
 	return crwatcher.NewCRWatcher(cwCfg, cfg, ctlr, l)

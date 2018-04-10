@@ -158,6 +158,7 @@ func (cw *CRWatcher) setupResource(dc *dynamic.Client) {
 		Name:       cw.Config.PluralName,
 		Namespaced: cw.Config.Namespace != metav1.NamespaceNone,
 	}
+	cw.logger.Infow("api resource", "resource", apiResource)
 	cw.resource = dc.Resource(apiResource, cw.Config.Namespace)
 }
 
