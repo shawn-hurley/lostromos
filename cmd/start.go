@@ -122,6 +122,10 @@ func getKubeClient() (*restclient.Config, error) {
 
 func buildCRWatcher(cfg *restclient.Config) (*crwatcher.CRWatcher, error) {
 	ns := viper.GetString("bundle.ns")
+	if ns == "" {
+		viper.BindEnv("MY_POD_NAMESPACE")
+		ns = viper.GetString("MY_POD_NAMESPACE")
+	}
 	cwCfg := &crwatcher.Config{
 		PluralName: viper.GetString("crd.name"),
 		Group:      viper.GetString("crd.group"),
