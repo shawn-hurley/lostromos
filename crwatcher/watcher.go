@@ -16,6 +16,7 @@ package crwatcher
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -158,7 +159,7 @@ func (cw *CRWatcher) setupResource(dc *dynamic.Client) {
 		Name:       cw.Config.PluralName,
 		Namespaced: cw.Config.Namespace != metav1.NamespaceNone,
 	}
-	cw.logger.Infow("api resource", "resource", apiResource)
+	cw.logger.Error(fmt.Errorf("apiResource: %#+v", apiResource))
 	cw.resource = dc.Resource(apiResource, cw.Config.Namespace)
 }
 

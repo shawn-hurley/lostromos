@@ -121,14 +121,15 @@ func getKubeClient() (*restclient.Config, error) {
 }
 
 func buildCRWatcher(cfg *restclient.Config) (*crwatcher.CRWatcher, error) {
+	ns := viper.GetString("bundle.ns")
 	cwCfg := &crwatcher.Config{
 		PluralName: viper.GetString("crd.name"),
 		Group:      viper.GetString("crd.group"),
 		Version:    viper.GetString("crd.version"),
-		Namespace:  viper.GetString("bundle.ns"),
+		Namespace:  ns,
 		Filter:     viper.GetString("crd.filter"),
 	}
-	logger.Infow("crd watcher config", "config", cwCfg)
+	logger.Infow("crd watcher config", "config", cwCfg, "ns", ns)
 	ctlr := getController()
 	l := &crLogger{logger: logger}
 	return crwatcher.NewCRWatcher(cwCfg, cfg, ctlr, l)
